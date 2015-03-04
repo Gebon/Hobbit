@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hobbit", "Hobbit\Hobbit.csproj", "{F26534E9-A9DF-4966-A987-B495F987293A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVisualaiser", "ConsoleVisualaiser\ConsoleVisualaiser.csproj", "{BD59A887-C0E3-45A2-A356-497C3246423A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F26534E9-A9DF-4966-A987-B495F987293A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F26534E9-A9DF-4966-A987-B495F987293A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F26534E9-A9DF-4966-A987-B495F987293A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD59A887-C0E3-45A2-A356-497C3246423A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD59A887-C0E3-45A2-A356-497C3246423A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD59A887-C0E3-45A2-A356-497C3246423A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD59A887-C0E3-45A2-A356-497C3246423A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

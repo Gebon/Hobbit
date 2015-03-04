@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F26534E9-A9DF-4966-A987-B495F987293A}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{BD59A887-C0E3-45A2-A356-497C3246423A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Hobbit</RootNamespace>
-    <AssemblyName>Hobbit</AssemblyName>
+    <RootNamespace>ConsoleVisualaiser</RootNamespace>
+    <AssemblyName>ConsoleVisualaiser</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -43,26 +42,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\IVisualaiser.cs" />
-    <Compile Include="Classes\GameObjects\Resident.cs" />
-    <Compile Include="Tests.cs" />
-    <Compile Include="Interfaces\IResident.cs" />
-    <Compile Include="Interfaces\IMapElement.cs" />
-    <Compile Include="Classes\GameObjects\Forest.cs" />
-    <Compile Include="Interfaces\IForest.cs" />
-    <Compile Include="Interfaces\ILoader.cs" />
-    <Compile Include="Interfaces\IMap.cs" />
-    <Compile Include="Classes\GameObjects\Map.cs" />
-    <Compile Include="Classes\MapLoader.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classes\GameObjects\Road.cs" />
-    <Compile Include="Classes\GameObjects\Wall.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="map.m">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hobbit\Hobbit.csproj">
+      <Project>{f26534e9-a9df-4966-a987-b495f987293a}</Project>
+      <Name>Hobbit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
