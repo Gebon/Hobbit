@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\GameObjects\Health.cs" />
+    <Compile Include="Classes\GameObjects\Trap.cs" />
     <Compile Include="Interfaces\IVisualaiser.cs" />
     <Compile Include="Classes\GameObjects\Resident.cs" />
     <Compile Include="Tests.cs" />

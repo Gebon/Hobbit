@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using Hobbit.Interfaces;
 
@@ -7,7 +9,8 @@ namespace Hobbit.Classes.GameObjects
     public class Forest : IForest
     {
         private IMap map;
-        public List<IResident> Residents = new List<IResident>();
+        private readonly List<IResident> residents = new List<IResident>();
+        public List<IResident> Residents { get { return residents; } }
 
         public Forest(IMap map)
         {
@@ -27,8 +30,25 @@ namespace Hobbit.Classes.GameObjects
         public bool MoveResidentTo(Point location, IResident resident)
         {
             var newLocation = resident.Location + (Size)location;
-            var elem = map[newLocation];
-            return elem.GoToMe(resident);
+            try
+            {
+                var elem = map[newLocation];
+                return elem.GoToMe(resident);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public IEnumerator<IMapElement> GetEnumerator()
+        {
+            return map.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
