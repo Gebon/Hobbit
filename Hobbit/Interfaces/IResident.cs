@@ -1,11 +1,14 @@
-using System.Drawing;
+
+
+using HelperLibrary;
 
 namespace Hobbit.Interfaces
 {
     public interface IResident
     {
+        int Id { get; }
         Point Location { get; set; }
         string Name { get; set; }
-        short Health { get; set; }
+        int Health { get; set; }
     }
 }

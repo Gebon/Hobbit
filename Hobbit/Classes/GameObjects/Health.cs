@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using HelperLibrary;
 using Hobbit.Interfaces;
 
-namespace Hobbit.Classes
+namespace Hobbit.Classes.GameObjects
 {
     public class Health : IMapElement
     {

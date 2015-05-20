@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using HelperLibrary;
 using Hobbit.Interfaces;
 
 namespace Hobbit.Classes.GameObjects
@@ -22,8 +22,10 @@ namespace Hobbit.Classes.GameObjects
 
         public Map(int width, int height)
         {
+            Width = width;
+            Height = height;
             map = new IMapElement[height][];
-            for (int i = 0; i < height; i++)
+            for (var i = 0; i < height; i++)
             {
                 map[i] = new IMapElement[width];
             }
@@ -31,12 +33,7 @@ namespace Hobbit.Classes.GameObjects
 
         public override int GetHashCode()
         {
-            int hash = 0;
-            foreach (var item in this)
-            {
-                hash = hash ^ item.GetHashCode();
-            }
-            return hash;
+            return this.Aggregate(0, (current, item) => current ^ item.GetHashCode());
         }
 
         public override bool Equals(object obj)
@@ -51,6 +48,10 @@ namespace Hobbit.Classes.GameObjects
         {
             return GetEnumerator();
         }
+
+        public int Width { get; private set; }
+
+        public int Height { get; private set; }
 
         public IMapElement this[Point index]
         {

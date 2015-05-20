@@ -1,0 +1,15 @@
+{
+	"map_path": "map.m",
+	"players_count": 1,
+	"0": {
+		"start_position": {
+			"X": 1,
+			"Y": 1
+		},
+		"destination": {
+			"X": 2,
+			"Y": 2
+		},
+		"health": 5
+	}
+}

@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
+using Hobbit.Classes.GameObjects;
 
 namespace Hobbit.Interfaces
 {
     public interface IForest : IEnumerable<IMapElement>
     {
+        int Width { get; }
+        int Height { get; }
+        IMap Map { get; }
         List<IResident> Residents { get; } 
-        bool SetResidentAt(Point location, string name, short health);
-        bool MoveResidentTo(Point location, IResident resident);
+        bool SetResidentAt(IResident resident);
+        bool MoveResidentTo(Direction direction, IResident resident);
     }
 }

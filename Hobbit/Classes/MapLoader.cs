@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using HelperLibrary;
 using Hobbit.Classes.GameObjects;
 using Hobbit.Interfaces;
 
@@ -24,16 +24,15 @@ namespace Hobbit.Classes
 
         public IMap LoadMap()
         {
-            var size = File.ReadLines(filePath)
-                .Take(1)
-                .First()
+            var lines = File.ReadAllLines(filePath);
+            var size = lines[0]
                 .Split(' ')
                 .Select(int.Parse)
                 .ToList();
             var result = new Map(size[0], size[1]);
             var x = 0;
             var y = 0;
-            foreach (var line in File.ReadLines(filePath).Skip(1))
+            foreach (var line in lines.Skip(1))
             {
                 foreach (var ch in line)
                 {
