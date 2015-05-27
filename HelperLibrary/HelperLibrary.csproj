@@ -48,7 +48,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HelperClasses.cs" />
+    <Compile Include="ClientInfo.cs" />
+    <Compile Include="Direction.cs" />
+    <Compile Include="Hello.cs" />
+    <Compile Include="Point.cs" />
+    <Compile Include="MapCell.cs" />
+    <Compile Include="Move.cs" />
+    <Compile Include="MoveResultInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializer.cs" />
   </ItemGroup>

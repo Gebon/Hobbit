@@ -1,6 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 
 namespace Server
 {
@@ -17,13 +18,22 @@ namespace Server
             return ms.ToArray();
         }
 
-        public static T Deserialize<T>(byte[] data)
+        public static T Deserialize<T>(Socket socket)
         {
-            var ms = new MemoryStream(data);
+            var ms = new NetworkStream(socket);
             using (var reader = new JsonTextReader(new StreamReader(ms)))
             {
                 var serializer = new JsonSerializer();
-                return serializer.Deserialize<T>(reader);
+                T result = default(T);
+                try
+                {
+                    result = serializer.Deserialize<T>(reader);
+                }
+                catch (IOException)
+                {
+                    Environment.Exit(-1);
+                }
+                return result;
             }
         }
     }

@@ -44,8 +44,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ai.cs" />
+    <Compile Include="DirectionResolver.cs" />
     <Compile Include="IAi.cs" />
     <Compile Include="MapInfo.cs" />
+    <Compile Include="PathNode.cs" />
+    <Compile Include="PointEqualityComparer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -53,10 +56,6 @@
     <ProjectReference Include="..\HelperLibrary\HelperLibrary.csproj">
       <Project>{22B2F956-FB2A-47C9-BA9A-0E6CB43D7E66}</Project>
       <Name>HelperLibrary</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hobbit\Hobbit.csproj">
-      <Project>{f26534e9-a9df-4966-a987-b495f987293a}</Project>
-      <Name>Hobbit</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
