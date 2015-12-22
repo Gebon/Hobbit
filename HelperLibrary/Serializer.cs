@@ -20,11 +20,11 @@ namespace Server
 
         public static T Deserialize<T>(Socket socket)
         {
-            var ms = new NetworkStream(socket);
-            using (var reader = new JsonTextReader(new StreamReader(ms)))
+            var stream = new NetworkStream(socket);
+            using (var reader = new JsonTextReader(new StreamReader(stream)))
             {
                 var serializer = new JsonSerializer();
-                T result = default(T);
+                var result = default(T);
                 try
                 {
                     result = serializer.Deserialize<T>(reader);

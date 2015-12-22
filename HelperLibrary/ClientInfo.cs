@@ -1,6 +1,6 @@
 ﻿namespace HelperLibrary
 {
-    public abstract class ClientInfo
+    public class ClientInfo
     {
         public Point MapSize; // x - height, y - width
         public int Hp;

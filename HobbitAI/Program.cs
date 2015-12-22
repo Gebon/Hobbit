@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using HelperLibrary;
 using Server;
 
@@ -12,8 +11,11 @@ namespace HobbitAI
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) { ReceiveTimeout = 0 };
             socket.Connect(args[0], int.Parse(args[1]));
+            var name = "BigBear";
+            if (args.Length == 3)
+                name = args[2];
 
-            socket.Send(Serializer.Serialize(new Hello { IsVisualizator = false, Name = "BigBear" }));
+            socket.Send(Serializer.Serialize(new Hello { IsVisualizator = false, Name = name }));
 
             var clientInfo = Serializer.Deserialize<ClientInfo>(socket);
 
@@ -25,17 +27,16 @@ namespace HobbitAI
 
             var mapInfo = GenerateMapInfo(width, heigth, position, clientInfo.VisibleMap);
 
-            var ai = new AI();
+            var ai = new AI(mapInfo);
             while (true)
             {
                 var direction = ai.GetNextTurn(position, target, mapInfo, hp);
-                socket.Send(Serializer.Serialize(new Move {Direction = (int)direction}));
+                socket.Send(Serializer.Serialize(new Move { Direction = (int)direction }));
                 var moveResultInfo = Serializer.Deserialize<MoveResultInfo>(socket);
                 switch (moveResultInfo.Result)
                 {
                     case 2:
-                        Environment.Exit(0);
-                        break;
+                        return;
                     case 0:
                         position = new Point(position.X + DirectionResolver.ToPoint(direction).X,
                             position.Y + DirectionResolver.ToPoint(direction).Y);
@@ -56,14 +57,23 @@ namespace HobbitAI
 
         private static void UpdateMapInfo(MapInfo mapInfo, Point position, int[,] visibleMap)
         {
-            var delta = -visibleMap.GetLength(0) / 2;
-            for (int x = 0; x < visibleMap.GetLength(0); x++)
+            for (var i = 0; i < mapInfo.Heigth; i++)
             {
-                for (int y = 0; y < visibleMap.GetLength(1); y++)
+                for (var j = 0; j < mapInfo.Width; j++)
+                {
+                    if (mapInfo[new Point(i, j)] == MapCell.Player)
+                        mapInfo[new Point(i, j)] = MapCell.Undefined;
+                }
+            }
+            var delta = -visibleMap.GetLength(0) / 2;
+            for (var x = 0; x < visibleMap.GetLength(0); x++)
+            {
+                for (var y = 0; y < visibleMap.GetLength(1); y++)
                 {
                     mapInfo[new Point(position.X + y + delta, position.Y + x + delta)] = (MapCell)visibleMap[x, y];
                 }
             }
+
         }
 
         private static MapInfo GenerateMapInfo(int width, int heigth, Point playerPosition, int[,] visibleMap)

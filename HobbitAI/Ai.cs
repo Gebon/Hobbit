@@ -2,49 +2,120 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using HelperLibrary;
 
 namespace HobbitAI
 {
+    public static class ExtensionMethods
+    {
+        public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> enumerable)
+        {
+            var result = enumerable.ToList();
+            var n = result.Count;
+            while (n > 1)
+            {
+                n--;
+                var k = ThreadSafeRandom.ThisThreadsRandom.Next(n + 1);
+                var value = result[k];
+                result[k] = result[n];
+                result[n] = value;
+            }
+            return result;
+        }
+    }
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic]
+        private static Random Local;
+
+        public static Random ThisThreadsRandom => Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId)));
+    }
+
     // ReSharper disable once InconsistentNaming
     public class AI : IAi
     {
-        private readonly Dictionary<MapCell, int> cellCost = new Dictionary<MapCell, int>
-        {
-            {MapCell.Health, -3},
-            {MapCell.Trap, 10},
-            {MapCell.Player, 2},
-            {MapCell.Road, 0},
-            {MapCell.Wall, 20},
-            {MapCell.Undefined, 0}
-        };
+        private readonly HashSet<Point> visited = new HashSet<Point>(new PointEqualityComparer());
+        private MapInfo previousMap;
 
+        public AI(MapInfo previousMap)
+        {
+            this.previousMap = previousMap;
+        }
+
+        private static int GetCellCost(MapCell cell, int hp)
+        {
+            switch (hp)
+            {
+                case 1:
+                case 2:
+                    switch (cell)
+                    {
+                        case MapCell.Trap:
+                            return 10;
+                        case MapCell.Health:
+                            return -10;
+                        default:
+                            return 0;
+                    }
+
+                case 3:
+                    switch (cell)
+                    {
+                        case MapCell.Trap:
+                            return 5;
+                        case MapCell.Health:
+                            return -5;
+                        default:
+                            return 0;
+                    }
+                default:
+                    switch (cell)
+                    {
+                        default:
+                            return 0;
+                    }
+            }
+        }
+
+        private delegate IEnumerable<PathNode> GetNeighboursFunc(PathNode node, GetHeuristicFunc getHeuristic);
+
+        private delegate int GetHeuristicFunc(Point point);
+
+        private delegate bool IsGoalFunc(Point point);
         public Direction GetNextTurn(Point start, Point destination, MapInfo mapInfo, int hp)
         {
             var comparer = new PointEqualityComparer();
-            var isGoalForPath = new Func<Point, bool>(point => comparer.Equals(point, destination));
-            var isGoalForHealth = new Func<Point, bool>(point => mapInfo[point] == MapCell.Health);
+            var isGoalForPathFinding = new IsGoalFunc(point => comparer.Equals(point, destination));
+            var isGoalForHealthFinding = new IsGoalFunc(point => mapInfo[point] == MapCell.Health);
 
-            var getHeuristicForPath = new Func<Point, int>(point => GetManhattanDistance(destination, point) + cellCost[mapInfo[point]]);
-            var getHeuristicForHealth = new Func<Point, int>(point => mapInfo[point] == MapCell.Trap ? 1 : (mapInfo[point] == MapCell.Health ? -1 : 0));
+            var getHeuristicForPath = new GetHeuristicFunc(point => GetManhattanDistance(destination, point) + GetCellCost(mapInfo[point], hp));
+            var getHeuristicForHealth = new GetHeuristicFunc(point => GetCellCost(mapInfo[point], hp));
 
-            var getNeighbours = new Func<PathNode, Func<Point, int>, IEnumerable<PathNode>>((node, getHeuristic) => GetNeighbours(node, getHeuristic, mapInfo));
+            var getNeighboursForPathFinding = new GetNeighboursFunc((node, getHeuristic) => GetNeighbours(node, getHeuristic, mapInfo));
+            var getNeighboursForHealthFinding =
+                new GetNeighboursFunc((node, getHeuristic) =>
+                    GetNeighbours(node, getHeuristic, mapInfo).Where(x => mapInfo[x.Position] != MapCell.Trap));
 
-            var aStar = new Func<Func<Point, bool>, Func<Point, int>, Point>((isGoal, getHeuristic) => AStar(start, isGoal, getNeighbours, getHeuristic));
+            var aStar = new Func<IsGoalFunc,
+                                 GetHeuristicFunc,
+                                 GetNeighboursFunc,
+                                 IEnumerable<Point>>((isGoal, getHeuristic, getNeighbours) => AStar(start, isGoal, getNeighbours, getHeuristic));
 
-            Point nextTurn;
-            if (hp > 1)
+            if (GetNeighbours(start).Any(x => mapInfo[x] == MapCell.Health) && previousMap[start] != MapCell.Trap && hp < 4)
             {
-                nextTurn = aStar(isGoalForPath, getHeuristicForPath) ?? aStar(isGoalForHealth, getHeuristicForHealth);
+                var point = GetNeighbours(start).First(x => mapInfo[x] == MapCell.Health);
+                previousMap = (MapInfo) mapInfo.Clone();
+                return
+                    DirectionResolver.ToDirection(new Point(point.X - start.X, point.Y - start.Y));
             }
-            else
-                nextTurn = aStar(isGoalForHealth, getHeuristicForHealth);
-            if (nextTurn == null)
-            {
-                var neighbour = GetNeighbours(start).OrderBy(x => mapInfo[x] == MapCell.Trap ? 10 : 0).First(x => mapInfo[x] != MapCell.Wall);
-                return DirectionResolver.ToDirection(new Point(neighbour.X - start.X, neighbour.Y - start.Y));
-            }
+            var path = aStar(isGoalForPathFinding, getHeuristicForPath, getNeighboursForPathFinding) ??
+                           aStar(isGoalForHealthFinding, getHeuristicForHealth, getNeighboursForHealthFinding);
+
+            var nextTurn = (path ?? new List<Point> { null, null }).ElementAt(1) ??
+                             GetNeighbours(start).OrderBy(x => GetCellCost(mapInfo[x], hp)).First();
             nextTurn = new Point(nextTurn.X - start.X, nextTurn.Y - start.Y);
+            previousMap = (MapInfo) mapInfo.Clone();
             return DirectionResolver.ToDirection(nextTurn);
         }
 
@@ -53,16 +124,18 @@ namespace HobbitAI
             return Math.Abs(point.X - destination.X) + Math.Abs(point.Y - destination.Y);
         }
 
-        private static Point AStar(Point start, Func<Point, bool> isGoal, Func<PathNode, Func<Point, int>, IEnumerable<PathNode>> getNeighbours, Func<Point, int> getHeuristic )
+        private IEnumerable<Point> AStar(Point start,
+                                         IsGoalFunc isGoal,
+                                         GetNeighboursFunc getNeighbours,
+                                         GetHeuristicFunc getHeuristic)
         {
             var comparer = new PointEqualityComparer();
 
             var closedSet = new Collection<PathNode>();
             var openSet = new Collection<PathNode>();
 
-            PathNode startNode = new PathNode()
+            var startNode = new PathNode(start)
             {
-                Position = start,
                 CameFrom = null,
                 PathLengthFromStart = 0,
                 HeuristicEstimatePathLength = getHeuristic(start)
@@ -70,10 +143,17 @@ namespace HobbitAI
             openSet.Add(startNode);
             while (openSet.Count > 0)
             {
-                var currentNode = openSet.OrderBy(node =>
-                  node.EstimateFullPathLength).First();
+                var currentNode = GetBestNode(openSet, startNode);
+
                 if (isGoal(currentNode.Position))
-                    return GetPathForNode(currentNode).ElementAt(1);
+                {
+                    var path = GetPathForNode(currentNode);
+                    foreach (var point in path)
+                    {
+                        visited.Add(point);
+                    }
+                    return path;
+                }
 
                 openSet.Remove(currentNode);
                 closedSet.Add(currentNode);
@@ -96,33 +176,32 @@ namespace HobbitAI
             return null;
         }
 
-
-        private static IEnumerable<PathNode> GetNeighbours(PathNode pathNode, Func<Point, int> getHeuristic, MapInfo mapInfo)
+        private PathNode GetBestNode(IEnumerable<PathNode> openSet, PathNode startNode)
         {
-            var dx = new[] { 0, 1, 0, -1 };
-            var dy = new[] { 1, 0, -1, 0 };
-            for (int i = 0; i < 4; i++)
-            {
-                var point = new Point(pathNode.Position.X + dx[i], pathNode.Position.Y + dy[i]);
-                if (!mapInfo.Bounds(point) || mapInfo[point] == MapCell.Wall)
-                    continue;
-                var neighbour =
-                    new PathNode
-                    {
-                        Position = point,
-                        CameFrom = pathNode,
-                        PathLengthFromStart = pathNode.PathLengthFromStart + 1,
-                        HeuristicEstimatePathLength = getHeuristic(point)
-                    };
-                yield return neighbour;
-            }
+            return openSet.OrderBy(node =>
+                node.EstimateFullPathLength + (visited.Contains(node.Position) ? 2 : 0))
+                .ThenByDescending(x => Math.Max(Math.Abs(x.Position.X - startNode.Position.X), Math.Abs(x.Position.Y - startNode.Position.Y)))
+                .First();
         }
 
-        private IEnumerable<Point> GetNeighbours(Point location)
+
+        private static IEnumerable<PathNode> GetNeighbours(PathNode pathNode, GetHeuristicFunc getHeuristic, MapInfo mapInfo)
+        {
+            return from point in GetNeighbours(pathNode.Position).Shuffle()
+                   where mapInfo.Bounds(point) && mapInfo[point] != MapCell.Wall && mapInfo[point] != MapCell.Player
+                   select new PathNode(point)
+                       {
+                           CameFrom = pathNode,
+                           PathLengthFromStart = pathNode.PathLengthFromStart + 1,
+                           HeuristicEstimatePathLength = getHeuristic(point)
+                       };
+        }
+
+        private static IEnumerable<Point> GetNeighbours(Point location)
         {
             var dx = new[] { 0, 1, 0, -1 };
             var dy = new[] { 1, 0, -1, 0 };
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 yield return new Point(location.X + dx[i], location.Y + dy[i]);
             }

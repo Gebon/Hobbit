@@ -8,7 +8,7 @@
             Y = y;
         }
 
-        public int X;
-        public int Y;
+        public readonly int X;
+        public readonly int Y;
     }
 }
